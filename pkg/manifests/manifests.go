@@ -134,6 +134,26 @@ func ClusterRoleBinding(component, subComponent string) (*rbacv1.ClusterRoleBind
 	return crb, nil
 }
 
+func RoleBinding(component, subComponent string) (*rbacv1.RoleBinding, error) {
+	if err := validateComponent(component); err != nil {
+		return nil, err
+	}
+	if err := validateSubComponent(component, subComponent); err != nil {
+		return nil, err
+	}
+
+	obj, err := loadObject(filepath.Join("yaml", component, subComponent, "rolebinding.yaml"))
+	if err != nil {
+		return nil, err
+	}
+
+	rb, ok := obj.(*rbacv1.RoleBinding)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type, got %t", obj)
+	}
+	return rb, nil
+}
+
 func APICRD() (*apiextensionv1.CustomResourceDefinition, error) {
 	obj, err := loadObject("yaml/api/crd.yaml")
 	if err != nil {

@@ -44,12 +44,14 @@ type Manifests struct {
 	CRController  *rbacv1.ClusterRole
 	CRBController *rbacv1.ClusterRoleBinding
 	DPController  *appsv1.Deployment
+	RBController  *rbacv1.RoleBinding
 	// scheduler proper
 	SAScheduler  *corev1.ServiceAccount
 	CRScheduler  *rbacv1.ClusterRole
 	CRBScheduler *rbacv1.ClusterRoleBinding
 	DPScheduler  *appsv1.Deployment
 	ConfigMap    *corev1.ConfigMap
+	RBScheduler  *rbacv1.RoleBinding
 	// internal fields
 	plat platform.Platform
 }
@@ -64,11 +66,13 @@ func (mf Manifests) Clone() Manifests {
 		CRController:  mf.CRController.DeepCopy(),
 		CRBController: mf.CRBController.DeepCopy(),
 		DPController:  mf.DPController.DeepCopy(),
+		RBController:  mf.RBController.DeepCopy(),
 		SAScheduler:   mf.SAScheduler.DeepCopy(),
 		CRScheduler:   mf.CRScheduler.DeepCopy(),
 		CRBScheduler:  mf.CRBScheduler.DeepCopy(),
 		DPScheduler:   mf.DPScheduler.DeepCopy(),
 		ConfigMap:     mf.ConfigMap.DeepCopy(),
+		RBScheduler:   mf.RBScheduler.DeepCopy(),
 	}
 }
 
@@ -116,11 +120,13 @@ func (mf Manifests) ToObjects() []client.Object {
 		mf.CRScheduler,
 		mf.CRBScheduler,
 		mf.ConfigMap,
+		mf.RBScheduler,
 		mf.DPScheduler,
 		mf.SAController,
 		mf.CRController,
 		mf.CRBController,
 		mf.DPController,
+		mf.RBController,
 	}
 }
 
@@ -132,6 +138,7 @@ func (mf Manifests) ToCreatableObjects(hp *deployer.Helper, log tlog.Logger) []d
 		deployer.WaitableObject{Obj: mf.CRScheduler},
 		deployer.WaitableObject{Obj: mf.CRBScheduler},
 		deployer.WaitableObject{Obj: mf.ConfigMap},
+		deployer.WaitableObject{Obj: mf.RBScheduler},
 		deployer.WaitableObject{
 			Obj: mf.DPScheduler,
 			Wait: func() error {
@@ -141,6 +148,7 @@ func (mf Manifests) ToCreatableObjects(hp *deployer.Helper, log tlog.Logger) []d
 		deployer.WaitableObject{Obj: mf.SAController},
 		deployer.WaitableObject{Obj: mf.CRController},
 		deployer.WaitableObject{Obj: mf.CRBController},
+		deployer.WaitableObject{Obj: mf.RBController},
 		deployer.WaitableObject{
 			Obj: mf.DPController,
 			Wait: func() error {
@@ -159,8 +167,10 @@ func (mf Manifests) ToDeletableObjects(hp *deployer.Helper, log tlog.Logger) []d
 		// no need to remove objects created inside the namespace we just removed
 		deployer.WaitableObject{Obj: mf.CRBScheduler},
 		deployer.WaitableObject{Obj: mf.CRScheduler},
+		deployer.WaitableObject{Obj: mf.RBScheduler},
 		deployer.WaitableObject{Obj: mf.CRBController},
 		deployer.WaitableObject{Obj: mf.CRController},
+		deployer.WaitableObject{Obj: mf.RBController},
 		deployer.WaitableObject{Obj: mf.Crd},
 	}
 }
@@ -195,6 +205,10 @@ func GetManifests(plat platform.Platform) (Manifests, error) {
 	if err != nil {
 		return mf, err
 	}
+	mf.RBScheduler, err = manifests.RoleBinding(manifests.ComponentSchedulerPlugin, manifests.SubComponentSchedulerPluginScheduler)
+	if err != nil {
+		return mf, err
+	}
 	mf.DPScheduler, err = manifests.Deployment(manifests.ComponentSchedulerPlugin, manifests.SubComponentSchedulerPluginScheduler)
 	if err != nil {
 		return mf, err
@@ -209,6 +223,10 @@ func GetManifests(plat platform.Platform) (Manifests, error) {
 		return mf, err
 	}
 	mf.CRBController, err = manifests.ClusterRoleBinding(manifests.ComponentSchedulerPlugin, manifests.SubComponentSchedulerPluginController)
+	if err != nil {
+		return mf, err
+	}
+	mf.RBController, err = manifests.RoleBinding(manifests.ComponentSchedulerPlugin, manifests.SubComponentSchedulerPluginController)
 	if err != nil {
 		return mf, err
 	}
