@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	namespaceOCP = "openshift-topology-aware-scheduler"
+	NamespaceOpenShift = "openshift-topology-aware-scheduler"
 )
 
 type Manifests struct {
@@ -94,7 +94,7 @@ func (mf Manifests) Update(logger tlog.Logger, options UpdateOptions) Manifests 
 	manifests.UpdateSchedulerPluginSchedulerDeployment(ret.DPScheduler, options.PullIfNotPresent)
 	manifests.UpdateSchedulerPluginControllerDeployment(ret.DPController, options.PullIfNotPresent)
 	if mf.plat == platform.OpenShift {
-		ret.Namespace.Name = namespaceOCP
+		ret.Namespace.Name = NamespaceOpenShift
 	}
 
 	ret.SAController.Namespace = ret.Namespace.Name
@@ -132,24 +132,24 @@ func (mf Manifests) ToObjects() []client.Object {
 
 func (mf Manifests) ToCreatableObjects(hp *deployer.Helper, log tlog.Logger) []deployer.WaitableObject {
 	return []deployer.WaitableObject{
-		deployer.WaitableObject{Obj: mf.Crd},
-		deployer.WaitableObject{Obj: mf.Namespace},
-		deployer.WaitableObject{Obj: mf.SAScheduler},
-		deployer.WaitableObject{Obj: mf.CRScheduler},
-		deployer.WaitableObject{Obj: mf.CRBScheduler},
-		deployer.WaitableObject{Obj: mf.ConfigMap},
-		deployer.WaitableObject{Obj: mf.RBScheduler},
-		deployer.WaitableObject{
+   	{Obj: mf.Crd},
+		{Obj: mf.Namespace},
+		{Obj: mf.SAScheduler},
+		{Obj: mf.CRScheduler},
+		{Obj: mf.CRBScheduler},
+    {Obj: mf.RBScheduler},
+		{Obj: mf.ConfigMap},
+		{
 			Obj: mf.DPScheduler,
 			Wait: func() error {
 				return wait.PodsToBeRunningByRegex(hp, log, mf.DPScheduler.Namespace, mf.DPScheduler.Name)
 			},
 		},
-		deployer.WaitableObject{Obj: mf.SAController},
-		deployer.WaitableObject{Obj: mf.CRController},
-		deployer.WaitableObject{Obj: mf.CRBController},
-		deployer.WaitableObject{Obj: mf.RBController},
-		deployer.WaitableObject{
+		{Obj: mf.SAController},
+		{Obj: mf.CRController},
+		{Obj: mf.CRBController},
+    {Obj: mf.RBController},
+		{
 			Obj: mf.DPController,
 			Wait: func() error {
 				return wait.PodsToBeRunningByRegex(hp, log, mf.DPController.Namespace, mf.DPController.Name)
@@ -160,18 +160,18 @@ func (mf Manifests) ToCreatableObjects(hp *deployer.Helper, log tlog.Logger) []d
 
 func (mf Manifests) ToDeletableObjects(hp *deployer.Helper, log tlog.Logger) []deployer.WaitableObject {
 	return []deployer.WaitableObject{
-		deployer.WaitableObject{
+		{
 			Obj:  mf.Namespace,
 			Wait: func() error { return wait.NamespaceToBeGone(hp, log, mf.Namespace.Name) },
 		},
 		// no need to remove objects created inside the namespace we just removed
-		deployer.WaitableObject{Obj: mf.CRBScheduler},
-		deployer.WaitableObject{Obj: mf.CRScheduler},
-		deployer.WaitableObject{Obj: mf.RBScheduler},
-		deployer.WaitableObject{Obj: mf.CRBController},
-		deployer.WaitableObject{Obj: mf.CRController},
-		deployer.WaitableObject{Obj: mf.RBController},
-		deployer.WaitableObject{Obj: mf.Crd},
+		{Obj: mf.CRBScheduler},
+		{Obj: mf.CRScheduler},
+    {Obj: mf.RBScheduler},
+		{Obj: mf.CRBController},
+		{Obj: mf.CRController},
+    {Obj: mf.RBController},
+		{Obj: mf.Crd},
 	}
 }
 
